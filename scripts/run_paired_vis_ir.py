@@ -17,7 +17,7 @@ from load_model import load_model  # noqa: E402
 from src.utils.metrics import estimate_pose  # noqa: E402
 from src.utils.plotting import make_matching_figure  # noqa: E402
 
-METHOD = "sp_lg"   # 可选: sp_lg / loftr / roma
+METHOD = "loftr"   # 可选: sp_lg / loftr / roma
 
 VIS_DIR = PROJECT_ROOT / "data" / "paired_test" / "original" / "vis"
 IR_DIR = PROJECT_ROOT / "data" / "paired_test" / "original" / "ir"
@@ -54,7 +54,12 @@ def dynamic_args(method: str):
     # 通用字段
     args.method = method
     args.ckpt = str(ckpt)
-    args.thr = None
+    
+    if method == "loftr":
+        args.thr = 0.2
+    else:
+        args.thr = None
+
     args.debug = False
     args.print_out = False
     args.save_figs = False

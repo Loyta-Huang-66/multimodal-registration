@@ -1,0 +1,7 @@
+﻿vis_name,ir_name,matches,inliers,inlier_ratio,status
+FLIR_00002_RGB.jpg,FLIR_00002_PreviewData.jpeg,1542,478,0.309987,ok
+FLIR_00003_RGB.jpg,FLIR_00003_PreviewData.jpeg,1445,518,0.358478,ok
+FLIR_00004_RGB.jpg,FLIR_00004_PreviewData.jpeg,1286,447,0.347589,ok
+FLIR_00006_RGB.jpg,FLIR_00006_PreviewData.jpeg,2266,714,0.315093,ok
+FLIR_00007_RGB.jpg,FLIR_00007_PreviewData.jpeg,1387,700,0.504686,ok
+FLIR_00008_RGB.jpg,FLIR_00008_PreviewData.jpeg,1342,625,0.465723,ok
