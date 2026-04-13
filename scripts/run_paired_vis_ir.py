@@ -10,8 +10,10 @@ from tqdm import tqdm
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MINIMA_ROOT = PROJECT_ROOT / "minima"
+ROMA_ROOT = MINIMA_ROOT / "third_party" / "RoMa_minima"
 
 sys.path.insert(0, str(MINIMA_ROOT))
+sys.path.insert(0, str(ROMA_ROOT))
 
 from load_model import load_model  # noqa: E402
 from src.utils.metrics import estimate_pose  # noqa: E402
@@ -23,7 +25,7 @@ VIS_DIR = PROJECT_ROOT / "data" / "paired_test" / "original" / "vis"
 IR_DIR = PROJECT_ROOT / "data" / "paired_test" / "original" / "ir"
 
 BASE_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "paired_vis_ir"
-RANSAC_THRESH = 1.5  
+RANSAC_THRESH = 3.0
 
 # 不同方法对应的权重
 CKPT_MAP = {

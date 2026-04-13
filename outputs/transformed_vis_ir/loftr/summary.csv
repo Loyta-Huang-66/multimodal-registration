@@ -1,0 +1,13 @@
+﻿image,method,transform,matches,inliers,inlier_ratio,reprojection_error,status
+FLIR_00002_RGB.jpg,loftr,translate_x20_y10,1518,960,0.632411,45.584412,ok
+FLIR_00003_RGB.jpg,loftr,translate_x20_y10,1331,839,0.630353,49.368103,ok
+FLIR_00004_RGB.jpg,loftr,translate_x20_y10,1248,562,0.450321,51.249352,ok
+FLIR_00002_RGB.jpg,loftr,rotate_5deg,1266,699,0.552133,77.485077,ok
+FLIR_00003_RGB.jpg,loftr,rotate_5deg,1267,716,0.565114,79.582825,ok
+FLIR_00004_RGB.jpg,loftr,rotate_5deg,1345,696,0.517472,75.434189,ok
+FLIR_00002_RGB.jpg,loftr,rotate_10deg,939,424,0.451544,153.516357,ok
+FLIR_00003_RGB.jpg,loftr,rotate_10deg,1143,632,0.552931,144.587036,ok
+FLIR_00004_RGB.jpg,loftr,rotate_10deg,1149,592,0.515231,146.998428,ok
+FLIR_00002_RGB.jpg,loftr,scale_1.1,1470,805,0.547619,67.858780,ok
+FLIR_00003_RGB.jpg,loftr,scale_1.1,1364,816,0.598240,73.087906,ok
+FLIR_00004_RGB.jpg,loftr,scale_1.1,1128,579,0.513298,84.934700,ok
