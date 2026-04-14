@@ -23,7 +23,7 @@ from src.utils.plotting import make_matching_figure  # noqa: E402
 # =========================
 # 配置区
 # =========================
-METHOD = "sp_lg"   # 可选: sp_lg / loftr
+METHOD = "loftr"   # 可选: sp_lg / loftr
 
 SR_DIR = PROJECT_ROOT / "data" / "video_test" / "sr"
 IR_DIR = PROJECT_ROOT / "data" / "video_test" / "ir"

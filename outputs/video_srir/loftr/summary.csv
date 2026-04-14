@@ -1,0 +1,9 @@
+﻿sr_name,ir_name,matches,inliers,inlier_ratio,status
+sr_00000.jpg,ir_00000.jpg,965,383,0.396891,ok
+sr_00001.jpg,ir_00001.jpg,1253,295,0.235435,ok
+sr_00002.jpg,ir_00002.jpg,495,99,0.200000,ok
+sr_00003.jpg,ir_00003.jpg,813,241,0.296433,ok
+sr_00004.jpg,ir_00004.jpg,738,126,0.170732,ok
+sr_00005.jpg,ir_00005.jpg,1228,353,0.287459,ok
+sr_00006.jpg,ir_00006.jpg,1002,231,0.230539,ok
+sr_00007.jpg,ir_00007.jpg,536,155,0.289179,ok
