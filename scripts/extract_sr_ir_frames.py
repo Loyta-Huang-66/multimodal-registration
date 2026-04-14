@@ -20,7 +20,12 @@ def ensure_dir(path: Path):
     path.mkdir(parents=True, exist_ok=True)
 
 
-def extract_frames_every_n_seconds(video_path: Path, out_dir: Path, interval_seconds: int):
+def extract_frames_every_n_seconds(
+    video_path: Path,
+    out_dir: Path,
+    interval_seconds: int,
+    prefix: str
+):
     if not video_path.exists():
         raise FileNotFoundError(f"Video not found: {video_path}")
 
@@ -34,11 +39,12 @@ def extract_frames_every_n_seconds(video_path: Path, out_dir: Path, interval_sec
     if fps <= 0:
         raise RuntimeError(f"Invalid FPS for video: {video_path}")
 
-    frame_interval = int(round(fps * interval_seconds))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     duration_seconds = total_frames / fps if fps > 0 else 0
+    frame_interval = int(round(fps * interval_seconds))
 
     print(f"\nProcessing: {video_path.name}")
+    print(f"Prefix: {prefix}")
     print(f"FPS: {fps:.2f}")
     print(f"Total frames: {total_frames}")
     print(f"Duration: {duration_seconds:.2f} seconds")
@@ -53,7 +59,7 @@ def extract_frames_every_n_seconds(video_path: Path, out_dir: Path, interval_sec
             break
 
         if frame_idx % frame_interval == 0:
-            out_name = f"{saved_idx:05d}.jpg"
+            out_name = f"{prefix}_{saved_idx:05d}.jpg"
             out_path = out_dir / out_name
             cv2.imwrite(str(out_path), frame)
             saved_idx += 1
@@ -68,12 +74,23 @@ def main():
     ensure_dir(OUT_SR)
     ensure_dir(OUT_IR)
 
-    extract_frames_every_n_seconds(VIDEO_SR, OUT_SR, INTERVAL_SECONDS)
-    extract_frames_every_n_seconds(VIDEO_IR, OUT_IR, INTERVAL_SECONDS)
+    extract_frames_every_n_seconds(
+        VIDEO_SR,
+        OUT_SR,
+        INTERVAL_SECONDS,
+        "sr"
+    )
+
+    extract_frames_every_n_seconds(
+        VIDEO_IR,
+        OUT_IR,
+        INTERVAL_SECONDS,
+        "ir"
+    )
 
     print("\nDone.")
-    print(f"SR frames: {OUT_SR}")
-    print(f"IR frames: {OUT_IR}")
+    print(f"SR frames saved in: {OUT_SR}")
+    print(f"IR frames saved in: {OUT_IR}")
 
 
 if __name__ == "__main__":
