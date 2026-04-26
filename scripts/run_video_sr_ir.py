@@ -23,7 +23,7 @@ from src.utils.plotting import make_matching_figure  # noqa: E402
 # =========================
 # 配置区
 # =========================
-METHOD = "loftr"   # 可选: sp_lg / loftr
+METHOD = "sp_lg"   # 可选: sp_lg / loftr
 
 SR_DIR = PROJECT_ROOT / "data" / "video_test" / "sr"
 IR_DIR = PROJECT_ROOT / "data" / "video_test" / "ir"
@@ -274,12 +274,30 @@ def main():
 
             if H is not None:
                 h1, w1 = img1.shape[:2]
+
+                # 1. 将短波红外图像映射到长波红外坐标系
                 warped = cv2.warpPerspective(
                     cv2.cvtColor(img0, cv2.COLOR_RGB2BGR),
                     H,
                     (w1, h1)
                 )
+
+                # 保存单独变换结果
                 cv2.imwrite(str(warp_path), warped)
+
+                # 2. 读取长波红外参考图像
+                ir_bgr = cv2.cvtColor(img1, cv2.COLOR_RGB2BGR)
+
+                # 3. 融合图像
+                fusion = cv2.addWeighted(
+                    warped, 0.5,
+                    ir_bgr, 0.5,
+                    0
+                )
+
+                # 4. 保存融合结果
+                fusion_path = method_output_dir / f"{stem}_fusion_to_ir.jpg"
+                cv2.imwrite(str(fusion_path), fusion)
 
             rows.append({
                 "sr_name": sr_name,

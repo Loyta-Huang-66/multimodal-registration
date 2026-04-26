@@ -8,9 +8,6 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
-# =========================
-# 路径设置
-# =========================
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MINIMA_ROOT = PROJECT_ROOT / "minima"
 
@@ -20,10 +17,7 @@ from load_model import load_model  # noqa: E402
 from src.utils.plotting import make_matching_figure  # noqa: E402
 
 
-# =========================
-# 配置区
-# =========================
-METHOD = "loftr"   # 可选: sp_lg / loftr
+METHOD = "sp_lg"   # 可选: sp_lg / loftr
 
 VIS_DIR = PROJECT_ROOT / "data" / "paired_test" / "original" / "vis"
 IR_DIR = PROJECT_ROOT / "data" / "paired_test" / "original" / "ir"
@@ -32,7 +26,6 @@ BASE_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "transformed_vis_ir"
 
 RANSAC_THRESH = 3.0
 
-# 先做单一变换实验
 TRANSFORMS = [
     {"name": "translate_x20_y10", "type": "translate", "tx": 20, "ty": 10},
     {"name": "rotate_5deg", "type": "rotate", "angle": 5},
@@ -46,9 +39,6 @@ CKPT_MAP = {
 }
 
 
-# =========================
-# 基础函数
-# =========================
 def ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
@@ -106,8 +96,14 @@ def save_simple_concat(path: Path, img0: np.ndarray, img1: np.ndarray) -> None:
     save_rgb(path, concat)
 
 
-def save_match_figure(path: Path, img0: np.ndarray, img1: np.ndarray,
-                      mkpts0: np.ndarray, mkpts1: np.ndarray, text_lines):
+def save_match_figure(
+    path: Path,
+    img0: np.ndarray,
+    img1: np.ndarray,
+    mkpts0: np.ndarray,
+    mkpts1: np.ndarray,
+    text_lines,
+):
     n = len(mkpts0)
     if n == 0:
         save_simple_concat(path, img0, img1)
@@ -115,32 +111,37 @@ def save_match_figure(path: Path, img0: np.ndarray, img1: np.ndarray,
 
     color = np.tile(np.array([[0.0, 1.0, 0.0, 1.0]]), (n, 1))
     make_matching_figure(
-        img0, img1, mkpts0, mkpts1, color,
-        text=text_lines, path=str(path), dpi=100, svg=False
+        img0,
+        img1,
+        mkpts0,
+        mkpts1,
+        color,
+        text=text_lines,
+        path=str(path),
+        dpi=100,
+        svg=False,
     )
 
 
 def apply_transform_to_vis(img: np.ndarray, transform_cfg: dict):
-    """
-    返回:
-    - transformed_img
-    - H_gt (3x3)
-    """
     h, w = img.shape[:2]
 
     if transform_cfg["type"] == "translate":
         tx = transform_cfg["tx"]
         ty = transform_cfg["ty"]
-        H = np.array([
-            [1, 0, tx],
-            [0, 1, ty],
-            [0, 0, 1]
-        ], dtype=np.float32)
+        H = np.array(
+            [
+                [1, 0, tx],
+                [0, 1, ty],
+                [0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
 
     elif transform_cfg["type"] == "rotate":
         angle = transform_cfg["angle"]
         center = (w / 2, h / 2)
-        M = cv2.getRotationMatrix2D(center, angle, 1.0)  # 2x3
+        M = cv2.getRotationMatrix2D(center, angle, 1.0)
         H = np.vstack([M, [0, 0, 1]]).astype(np.float32)
 
     elif transform_cfg["type"] == "scale":
@@ -155,22 +156,22 @@ def apply_transform_to_vis(img: np.ndarray, transform_cfg: dict):
     transformed = cv2.warpPerspective(
         cv2.cvtColor(img, cv2.COLOR_RGB2BGR),
         H,
-        (w, h)
+        (w, h),
     )
     transformed = cv2.cvtColor(transformed, cv2.COLOR_BGR2RGB)
     return transformed, H
 
 
 def compute_reprojection_error(H_gt: np.ndarray, H_est: np.ndarray, w: int, h: int):
-    """
-    用图像四角点比较 H_gt 和 H_est 的重投影误差
-    """
-    pts = np.array([
-        [0, 0],
-        [w - 1, 0],
-        [w - 1, h - 1],
-        [0, h - 1]
-    ], dtype=np.float32).reshape(-1, 1, 2)
+    pts = np.array(
+        [
+            [0, 0],
+            [w - 1, 0],
+            [w - 1, h - 1],
+            [0, h - 1],
+        ],
+        dtype=np.float32,
+    ).reshape(-1, 1, 2)
 
     gt_pts = cv2.perspectiveTransform(pts, H_gt)
     est_pts = cv2.perspectiveTransform(pts, H_est)
@@ -182,12 +183,15 @@ def compute_reprojection_error(H_gt: np.ndarray, H_est: np.ndarray, w: int, h: i
 def safe_inlier_mask(mask, n_matches: int) -> np.ndarray:
     if mask is None:
         return np.zeros((n_matches,), dtype=bool)
+
     mask = np.asarray(mask).reshape(-1)
+
     if len(mask) != n_matches:
         usable = min(len(mask), n_matches)
         out = np.zeros((n_matches,), dtype=bool)
         out[:usable] = mask[:usable].astype(bool)
         return out
+
     return mask.astype(bool)
 
 
@@ -198,10 +202,12 @@ def main():
     args = dynamic_args(METHOD)
     matcher = load_model(METHOD, args)
 
-    vis_files = sorted([
-        f for f in os.listdir(VIS_DIR)
-        if f.lower().endswith((".jpg", ".jpeg", ".png"))
-    ])[:3]
+    vis_files = sorted(
+        [
+            f for f in os.listdir(VIS_DIR)
+            if f.lower().endswith((".jpg", ".jpeg", ".png"))
+        ]
+    )[:3]
 
     method_output_dir = BASE_OUTPUT_DIR / METHOD
     ensure_dir(method_output_dir)
@@ -226,7 +232,6 @@ def main():
                 img_vis = read_rgb(vis_path)
                 img_ir = read_rgb(ir_path)
 
-                # 1. 对 VIS 施加已知几何变换
                 img_vis_tf, H_gt = apply_transform_to_vis(img_vis, transform_cfg)
 
                 stem = vis_name.rsplit(".", 1)[0]
@@ -234,11 +239,13 @@ def main():
                 transformed_vis_path = transform_dir / f"{stem}_transformed_vis.jpg"
                 save_rgb(transformed_vis_path, img_vis_tf)
 
-                # 2. 跑匹配：变换后的 VIS vs 原始 IR
                 match_res = matcher(
                     str(transformed_vis_path),
                     str(ir_path),
-                    None, None, None, None
+                    None,
+                    None,
+                    None,
+                    None,
                 )
 
                 mkpts0 = np.asarray(match_res["mkpts0"])
@@ -246,45 +253,49 @@ def main():
                 num_matches = len(mkpts0)
 
                 if num_matches < 4:
-                    rows.append({
-                        "image": vis_name,
-                        "method": METHOD,
-                        "transform": transform_name,
-                        "matches": num_matches,
-                        "inliers": 0,
-                        "inlier_ratio": 0.0,
-                        "reprojection_error": "",
-                        "status": "too_few_matches"
-                    })
+                    rows.append(
+                        {
+                            "image": vis_name,
+                            "method": METHOD,
+                            "transform": transform_name,
+                            "matches": num_matches,
+                            "inliers": 0,
+                            "inlier_ratio": 0.0,
+                            "reprojection_error": "",
+                            "status": "too_few_matches",
+                        }
+                    )
                     continue
 
-                # 3. 用 RANSAC 估计单应矩阵
                 H_est, inlier_mask_cv = cv2.findHomography(
-                    mkpts0, mkpts1, cv2.RANSAC, ransacReprojThreshold=RANSAC_THRESH
+                    mkpts0,
+                    mkpts1,
+                    cv2.RANSAC,
+                    ransacReprojThreshold=RANSAC_THRESH,
                 )
 
                 if H_est is None or inlier_mask_cv is None:
-                    rows.append({
-                        "image": vis_name,
-                        "method": METHOD,
-                        "transform": transform_name,
-                        "matches": num_matches,
-                        "inliers": 0,
-                        "inlier_ratio": 0.0,
-                        "reprojection_error": "",
-                        "status": "homography_failed"
-                    })
+                    rows.append(
+                        {
+                            "image": vis_name,
+                            "method": METHOD,
+                            "transform": transform_name,
+                            "matches": num_matches,
+                            "inliers": 0,
+                            "inlier_ratio": 0.0,
+                            "reprojection_error": "",
+                            "status": "homography_failed",
+                        }
+                    )
                     continue
 
                 inlier_mask = safe_inlier_mask(inlier_mask_cv, num_matches)
                 num_inliers = int(inlier_mask.sum())
                 inlier_ratio = num_inliers / num_matches if num_matches > 0 else 0.0
 
-                # 4. 计算重投影误差
                 h, w = img_vis.shape[:2]
                 reproj_err = compute_reprojection_error(H_gt, H_est, w, h)
 
-                # 5. 保存 before/after/warp
                 before_path = transform_dir / f"{stem}_before_ransac.jpg"
                 after_path = transform_dir / f"{stem}_after_ransac.jpg"
                 warp_path = transform_dir / f"{stem}_warp_to_ir.jpg"
@@ -299,7 +310,7 @@ def main():
                         f"method: {METHOD}",
                         f"transform: {transform_name}",
                         f"matches: {num_matches}",
-                    ]
+                    ],
                 )
 
                 save_match_figure(
@@ -315,27 +326,43 @@ def main():
                         f"inliers: {num_inliers}",
                         f"inlier_ratio: {inlier_ratio:.3f}",
                         f"reproj_err: {reproj_err:.3f}",
-                    ]
+                    ],
                 )
 
                 h_ir, w_ir = img_ir.shape[:2]
+
                 warped = cv2.warpPerspective(
                     cv2.cvtColor(img_vis_tf, cv2.COLOR_RGB2BGR),
                     H_est,
-                    (w_ir, h_ir)
+                    (w_ir, h_ir),
                 )
                 cv2.imwrite(str(warp_path), warped)
 
-                rows.append({
-                    "image": vis_name,
-                    "method": METHOD,
-                    "transform": transform_name,
-                    "matches": num_matches,
-                    "inliers": num_inliers,
-                    "inlier_ratio": f"{inlier_ratio:.6f}",
-                    "reprojection_error": f"{reproj_err:.6f}",
-                    "status": "ok"
-                })
+                ir_bgr = cv2.cvtColor(img_ir, cv2.COLOR_RGB2BGR)
+
+                fusion = cv2.addWeighted(
+                    warped,
+                    0.5,
+                    ir_bgr,
+                    0.5,
+                    0,
+                )
+
+                fusion_path = transform_dir / f"{stem}_fusion_to_ir.jpg"
+                cv2.imwrite(str(fusion_path), fusion)
+
+                rows.append(
+                    {
+                        "image": vis_name,
+                        "method": METHOD,
+                        "transform": transform_name,
+                        "matches": num_matches,
+                        "inliers": num_inliers,
+                        "inlier_ratio": f"{inlier_ratio:.6f}",
+                        "reprojection_error": f"{reproj_err:.6f}",
+                        "status": "ok",
+                    }
+                )
 
                 print(
                     f"{vis_name} | {transform_name}: "
@@ -345,18 +372,19 @@ def main():
 
             except Exception as e:
                 print(f"[ERROR] {vis_name} | {transform_name}: {e}")
-                rows.append({
-                    "image": vis_name,
-                    "method": METHOD,
-                    "transform": transform_name,
-                    "matches": -1,
-                    "inliers": -1,
-                    "inlier_ratio": "",
-                    "reprojection_error": "",
-                    "status": f"error: {e}"
-                })
+                rows.append(
+                    {
+                        "image": vis_name,
+                        "method": METHOD,
+                        "transform": transform_name,
+                        "matches": -1,
+                        "inliers": -1,
+                        "inlier_ratio": "",
+                        "reprojection_error": "",
+                        "status": f"error: {e}",
+                    }
+                )
 
-    # 6. 保存 summary.csv
     summary_csv = method_output_dir / "summary.csv"
     with open(summary_csv, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(
@@ -369,15 +397,18 @@ def main():
                 "inliers",
                 "inlier_ratio",
                 "reprojection_error",
-                "status"
-            ]
+                "status",
+            ],
         )
         writer.writeheader()
         writer.writerows(rows)
 
     valid_rows = [
-        r for r in rows
-        if isinstance(r["matches"], int) and r["matches"] >= 0 and r["status"] == "ok"
+        r
+        for r in rows
+        if isinstance(r["matches"], int)
+        and r["matches"] >= 0
+        and r["status"] == "ok"
     ]
 
     if valid_rows:
